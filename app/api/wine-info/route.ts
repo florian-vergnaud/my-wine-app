@@ -22,7 +22,9 @@ const SYSTEM =
   "dont la RVF), Vivino (note sur 5 + nombre d'avis), Wine Spectator / Parker (sur 100) et " +
   "la Revue du Vin de France (sur 20). CONSERVE l'échelle d'origine de chaque note (ne la " +
   "normalise pas). Sois honnête s'il y a peu d'informations sur ce vin précis, et N'INVENTE " +
-  "JAMAIS de note ni de citation.";
+  "JAMAIS de note ni de citation. Sois RAPIDE : effectue au maximum 2 recherches, ne " +
+  "lis PAS le fil LPV en entier (limite-toi aux premières pages / premiers messages du fil " +
+  "le plus pertinent), et rédige une synthèse COURTE (2 paragraphes maximum).";
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +39,7 @@ Couleur : ${b.color || "?"}
 
 Réponds UNIQUEMENT par un objet JSON (aucun texte autour) :
 {
-  "summary": "<synthèse en français, 2 à 4 paragraphes : arômes/structure typiques, consensus de qualité, fenêtre de garde évoquée, accords cités ; distingue clairement ce qui vient de LPV de ce qui vient d'ailleurs>",
+  "summary": "<synthèse COURTE en français, 2 paragraphes maximum : arômes/structure, consensus de qualité, fenêtre de garde, accords ; distingue ce qui vient de LPV de ce qui vient d'ailleurs>",
   "ratings": [
     { "source": "Vivino", "score": "4.1/5", "scale": "/5", "count": 1234 },
     { "source": "Wine Spectator", "score": "93/100", "scale": "/100", "count": null }
@@ -50,13 +52,13 @@ Si aucune note fiable n'est trouvée, mets "ratings": []. Garde "score" tel quel
       client,
       {
         model: MODEL,
-        max_tokens: 2500,
+        max_tokens: 1500,
         system: SYSTEM,
-        thinking: { type: "adaptive" },
-        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
+        output_config: { effort: "low" },
+        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }],
         messages: [{ role: "user", content: user }],
       },
-      4,
+      2,
     );
 
     const text = textOf(resp);
