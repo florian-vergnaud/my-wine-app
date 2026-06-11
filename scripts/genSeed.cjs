@@ -1,5 +1,7 @@
-// One-off generator: reads the owner's "Livre de cave" Excel and emits
-// lib/seedData.ts so the demo cellar is pre-loaded with the real inventory.
+// Generator: reads the owner's "Livre de cave" Excel and emits the gitignored
+// public/cellar.local.json so the demo cellar is pre-loaded with the real
+// inventory (kept out of the repo for privacy). Run enrichSeed.cjs afterwards
+// to fill region / grapes / drink-window / occasion.
 // Re-run with:  node scripts/genSeed.cjs "<path-to-xlsx>"
 const XLSX = require("xlsx");
 const fs = require("fs");
@@ -74,19 +76,10 @@ const seed = rows
   })
   .filter(Boolean);
 
-const header = `// AUTO-GENERATED from the owner's "Livre de cave" Excel by scripts/genSeed.cjs.
-// Loaded as the initial demo cellar. Safe to edit, but re-running the
-// generator will overwrite this file.
-import type { Bottle } from "./types";
-
-export type SeedBottle = Omit<Bottle, "id" | "createdAt" | "updatedAt">;
-
-export const SEED_BOTTLES: SeedBottle[] = `;
-
-const body = JSON.stringify(seed, null, 2);
-const out = path.join(__dirname, "..", "lib", "seedData.ts");
-fs.writeFileSync(out, header + body + ";\n", "utf8");
-console.log(`Wrote ${seed.length} bottles to lib/seedData.ts`);
+const out = path.join(__dirname, "..", "public", "cellar.local.json");
+fs.mkdirSync(path.dirname(out), { recursive: true });
+fs.writeFileSync(out, JSON.stringify(seed, null, 2) + "\n", "utf8");
+console.log(`Wrote ${seed.length} bottles to public/cellar.local.json`);
 console.log(
   "Total bottles:",
   seed.reduce((a, b) => a + (b.quantity || 0), 0),

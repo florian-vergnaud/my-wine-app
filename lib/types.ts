@@ -25,12 +25,12 @@ export const BOTTLE_FORMATS = [
 ] as const;
 
 export const DEFAULT_OCCASIONS = [
-  "Anniversaire",
-  "Grande occasion",
-  "Entre amis",
-  "Déjeuner rapide / semaine",
-  "À offrir",
-  "Apéritif",
+  "Un grand moment",
+  "Pépite pour passionnés",
+  "Un moment simple entre copains",
+  "Dîner à deux",
+  "Repas de famille / fêtes",
+  "Pas à moi",
 ] as const;
 
 /** A lot of identical bottles owned in the cellar. */
@@ -136,3 +136,6 @@ export function emptyBottle(): Bottle {
     updatedAt: now,
   };
 }
+
+/** A bottle as stored in the (gitignored) local cellar seed file. */
+export type SeedBottle = Omit<Bottle, "id" | "createdAt" | "updatedAt">;

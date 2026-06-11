@@ -10,9 +10,8 @@ import React, {
   useState,
 } from "react";
 import { createStore, type Store } from "./store";
-import type { Bottle, HistoryEntry, StorageUnit } from "./types";
+import type { Bottle, HistoryEntry, SeedBottle, StorageUnit } from "./types";
 import { todayISO } from "./format";
-import { SEED_BOTTLES } from "./seedData";
 
 interface CellarContextValue {
   ready: boolean;
@@ -43,7 +42,7 @@ interface CellarContextValue {
 const CellarContext = createContext<CellarContextValue | null>(null);
 
 // Bump SEED_VERSION to force a clean demo re-seed (clears prior demo data).
-const SEED_VERSION = "2";
+const SEED_VERSION = "3";
 const SEED_VERSION_KEY = "mcv.seedVersion";
 
 function nowISO() {
@@ -51,18 +50,21 @@ function nowISO() {
 }
 
 /**
- * The owner's real cellar (from the imported Excel) pre-loads the demo.
- * IDs are deterministic (`seed-<n>`) so that re-running the seed upserts the
- * same rows instead of creating duplicates.
+ * Loads the owner's cellar from a gitignored file served at /cellar.local.json
+ * (kept out of the repo for privacy). Returns [] when absent (e.g. production,
+ * where data lives in Supabase). IDs are deterministic so re-seeding upserts
+ * the same rows instead of duplicating them.
  */
-function seedBottles(): Bottle[] {
-  const y = nowISO();
-  return SEED_BOTTLES.map((s, i) => ({
-    ...s,
-    id: `seed-${i}`,
-    createdAt: y,
-    updatedAt: y,
-  }));
+async function loadSeed(): Promise<Bottle[]> {
+  try {
+    const res = await fetch("/cellar.local.json", { cache: "no-store" });
+    if (!res.ok) return [];
+    const raw = (await res.json()) as SeedBottle[];
+    const y = nowISO();
+    return raw.map((s, i) => ({ ...s, id: `seed-${i}`, createdAt: y, updatedAt: y }));
+  } catch {
+    return [];
+  }
 }
 
 export function CellarProvider({ children }: { children: React.ReactNode }) {
@@ -105,9 +107,13 @@ export function CellarProvider({ children }: { children: React.ReactNode }) {
           if (ver !== SEED_VERSION) {
             // Clean (re)seed: clear any prior demo bottles (incl. duplicates
             // from older versions), then load the cellar with stable IDs.
-            const existing = await store.listBottles();
-            for (const old of existing) await store.deleteBottle(old.id);
-            for (const seed of seedBottles()) await store.upsertBottle(seed);
+            // Only wipe if we actually have replacement data.
+            const seeds = await loadSeed();
+            if (seeds.length > 0) {
+              const existing = await store.listBottles();
+              for (const old of existing) await store.deleteBottle(old.id);
+              for (const seed of seeds) await store.upsertBottle(seed);
+            }
             window.localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
           }
         }
