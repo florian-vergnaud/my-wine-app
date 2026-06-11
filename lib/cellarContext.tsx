@@ -41,29 +41,42 @@ interface CellarContextValue {
 
 const CellarContext = createContext<CellarContextValue | null>(null);
 
-// Bump SEED_VERSION to force a clean demo re-seed (clears prior demo data).
-const SEED_VERSION = "3";
-const SEED_VERSION_KEY = "mcv.seedVersion";
+// The demo re-seeds whenever the cellar file's content changes (hash differs
+// from the last one loaded) — no manual version bumps needed.
+const SEED_HASH_KEY = "mcv.seedHash";
 
 function nowISO() {
   return new Date().toISOString();
 }
 
+function hashStr(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
 /**
  * Loads the owner's cellar from a gitignored file served at /cellar.local.json
- * (kept out of the repo for privacy). Returns [] when absent (e.g. production,
+ * (kept out of the repo for privacy). Returns null when absent (e.g. production,
  * where data lives in Supabase). IDs are deterministic so re-seeding upserts
  * the same rows instead of duplicating them.
  */
-async function loadSeed(): Promise<Bottle[]> {
+async function fetchSeed(): Promise<{ seeds: Bottle[]; hash: string } | null> {
   try {
     const res = await fetch("/cellar.local.json", { cache: "no-store" });
-    if (!res.ok) return [];
-    const raw = (await res.json()) as SeedBottle[];
+    if (!res.ok) return null;
+    const text = await res.text();
+    const raw = JSON.parse(text) as SeedBottle[];
     const y = nowISO();
-    return raw.map((s, i) => ({ ...s, id: `seed-${i}`, createdAt: y, updatedAt: y }));
+    const seeds = raw.map((s, i) => ({
+      ...s,
+      id: `seed-${i}`,
+      createdAt: y,
+      updatedAt: y,
+    }));
+    return { seeds, hash: hashStr(text) };
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -103,18 +116,18 @@ export function CellarProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         if (store.mode === "demo" && typeof window !== "undefined") {
-          const ver = window.localStorage.getItem(SEED_VERSION_KEY);
-          if (ver !== SEED_VERSION) {
-            // Clean (re)seed: clear any prior demo bottles (incl. duplicates
-            // from older versions), then load the cellar with stable IDs.
-            // Only wipe if we actually have replacement data.
-            const seeds = await loadSeed();
-            if (seeds.length > 0) {
+          const data = await fetchSeed();
+          if (data && data.seeds.length > 0) {
+            const stored = window.localStorage.getItem(SEED_HASH_KEY);
+            if (stored !== data.hash) {
+              // Cellar file changed: replace the seeded rows (ids "seed-*"),
+              // leaving any bottles the user added manually untouched.
               const existing = await store.listBottles();
-              for (const old of existing) await store.deleteBottle(old.id);
-              for (const seed of seeds) await store.upsertBottle(seed);
+              for (const old of existing)
+                if (old.id.startsWith("seed-")) await store.deleteBottle(old.id);
+              for (const seed of data.seeds) await store.upsertBottle(seed);
+              window.localStorage.setItem(SEED_HASH_KEY, data.hash);
             }
-            window.localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
           }
         }
       } catch {
