@@ -35,9 +35,6 @@ export default function WineFormModal({
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [estimating, setEstimating] = useState(false);
-  const [lpv, setLpv] = useState<{ loading: boolean; text?: string; error?: string }>({
-    loading: false,
-  });
 
   const occasions = useMemo(() => {
     const set = new Set<string>(DEFAULT_OCCASIONS as readonly string[]);
@@ -103,23 +100,6 @@ export default function WineFormModal({
       setAiMsg(`Estimation IA indisponible : ${e.message}`);
     } finally {
       setEstimating(false);
-    }
-  }
-
-  async function onLpv() {
-    setLpv({ loading: true });
-    try {
-      const r = await apiPost<{ summary: string }>("/api/lpv-summary", {
-        producer: b.producer,
-        name: b.name,
-        vintage: b.vintage,
-        appellation: b.appellation,
-        region: b.region,
-        color: b.color,
-      });
-      setLpv({ loading: false, text: r.summary });
-    } catch (e: any) {
-      setLpv({ loading: false, error: e.message });
     }
   }
 
@@ -196,34 +176,12 @@ export default function WineFormModal({
             >
               {estimating ? "Estimation…" : "⏳ Estimer la fenêtre (IA)"}
             </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={lpv.loading || !b.name}
-              onClick={onLpv}
-              title="Synthèse des avis La Passion du Vin et de la critique"
-            >
-              {lpv.loading ? "Recherche…" : "💬 Avis communauté (LPV)"}
-            </button>
             {b.photoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={b.photoUrl} alt="Étiquette" className="h-12 rounded" />
             )}
           </div>
           {aiMsg && <p className="mt-2 text-sm text-wine-600">{aiMsg}</p>}
-          {lpv.error && (
-            <p className="mt-2 text-sm text-amber-700">
-              Synthèse communauté indisponible : {lpv.error}
-            </p>
-          )}
-          {lpv.text && (
-            <div className="mt-2">
-              <p className="label">Impression de la communauté (LPV / critique)</p>
-              <div className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg border border-wine-100 bg-white p-2 text-sm text-wine-700">
-                {lpv.text}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

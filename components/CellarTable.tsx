@@ -6,6 +6,7 @@ import { useCellar } from "@/lib/cellarContext";
 import { colorMeta, formatPrice } from "@/lib/format";
 import { drinkInfo, STATUS_META } from "@/lib/drinkWindow";
 import TastingModal from "./TastingModal";
+import BottleDetailModal from "./BottleDetailModal";
 
 type FilterType = "text" | "select" | "number" | "none";
 
@@ -128,6 +129,7 @@ export default function CellarTable({
 }) {
   const { consumeBottle } = useCellar();
   const [entry, setEntry] = useState<HistoryEntry | null>(null);
+  const [detail, setDetail] = useState<Bottle | null>(null);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [sortKey, setSortKey] = useState<string>("");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -284,7 +286,11 @@ export default function CellarTable({
               </tr>
             ) : (
               rows.map((b) => (
-                <tr key={b.id} className="border-t border-wine-50 hover:bg-wine-50/60">
+                <tr
+                  key={b.id}
+                  onClick={() => setDetail(b)}
+                  className="cursor-pointer border-t border-wine-50 hover:bg-wine-50/60"
+                >
                   {COLS.map((c) => (
                     <td
                       key={c.key}
@@ -295,7 +301,10 @@ export default function CellarTable({
                       {c.cell ? c.cell(b) : (c.value(b) ?? "—") || "—"}
                     </td>
                   ))}
-                  <td className="whitespace-nowrap px-1 py-1 text-right align-top">
+                  <td
+                    className="whitespace-nowrap px-1 py-1 text-right align-top"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       onClick={() => handleConsume(b.id)}
                       className="rounded px-1 py-0.5 hover:bg-wine-100"
@@ -319,6 +328,20 @@ export default function CellarTable({
       </div>
 
       {entry && <TastingModal entry={entry} onClose={() => setEntry(null)} />}
+      {detail && (
+        <BottleDetailModal
+          bottle={detail}
+          onClose={() => setDetail(null)}
+          onConsume={(id) => {
+            setDetail(null);
+            handleConsume(id);
+          }}
+          onEdit={(b) => {
+            setDetail(null);
+            onEdit(b);
+          }}
+        />
+      )}
     </div>
   );
 }

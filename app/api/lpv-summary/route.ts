@@ -6,8 +6,10 @@ export const maxDuration = 120;
 const SYSTEM =
   SOMMELIER +
   " Tu produis une SYNTHÈSE QUALITATIVE de ce que la communauté de La Passion du Vin " +
-  "(lapassionduvin.com) et la critique disent d'un vin. Méthode : lance D'ABORD des " +
-  "recherches ciblées sur LPV (par ex. `site:lapassionduvin.com [producteur] [vin] [millésime]`). " +
+  "(lapassionduvin.com) et la critique disent d'un vin. Méthode : effectue D'ABORD une " +
+  "recherche web avec la requête « [producteur] [cuvée] [millésime] lpv » — ajouter le " +
+  "mot-clé `lpv` fait remonter directement le bon fil de La Passion du Vin. Ouvre et exploite " +
+  "en priorité ce fil ; tu peux aussi essayer `site:lapassionduvin.com [producteur] [cuvée]`. " +
   "Fonde ta synthèse PRINCIPALEMENT sur les fils LPV ; ne complète avec d'autres sources " +
   "sérieuses (Wine-Searcher, RVF, etc.) que si LPV est pauvre — et indique-le. Distingue " +
   "clairement ce qui vient de LPV de ce qui vient d'ailleurs. Couvre : arômes et structure " +
