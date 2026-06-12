@@ -1,4 +1,5 @@
 import { getClient, MODEL, textOf, parseJsonLoose, aiError, SOMMELIER } from "@/lib/server/ai";
+import { requireAuth } from "@/lib/server/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,6 +22,8 @@ Déduis les champs non imprimés (région, cépages) à partir de l'appellation 
 
 export async function POST(req: Request) {
   try {
+    const denied = await requireAuth(req);
+    if (denied) return denied;
     const { image } = await req.json();
     const m = /^data:(image\/\w+);base64,(.+)$/.exec(image || "");
     if (!m) return aiError(new Error("Image invalide."), 400);

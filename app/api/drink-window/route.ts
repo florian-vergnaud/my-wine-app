@@ -1,10 +1,13 @@
 import { getClient, MODEL, textOf, parseJsonLoose, aiError, SOMMELIER } from "@/lib/server/ai";
+import { requireAuth } from "@/lib/server/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    const denied = await requireAuth(req);
+    if (denied) return denied;
     const b = await req.json();
     const client = getClient();
     const v = b.vintage ? String(b.vintage) : "non millésimé";

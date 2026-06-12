@@ -35,3 +35,5 @@ next-env.d.ts
 # personal cellar data (kept out of the repo for privacy)
 /public/cellar.local.json
 /lib/seedData.ts
+/cellar-export.xlsx
+/cellar-export.csv

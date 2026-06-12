@@ -1,10 +1,13 @@
 import { getClient, MODEL, textOf, parseJsonLoose, aiError, SOMMELIER } from "@/lib/server/ai";
+import { requireAuth } from "@/lib/server/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    const denied = await requireAuth(req);
+    if (denied) return denied;
     const { meal, context, candidates } = await req.json();
     if (!meal || !Array.isArray(candidates) || candidates.length === 0) {
       return aiError(new Error("Repas ou liste de vins manquants."), 400);

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
-import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "Ma Cave Virtuelle",
@@ -23,9 +22,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <Providers>
-          <AppShell>{children}</AppShell>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

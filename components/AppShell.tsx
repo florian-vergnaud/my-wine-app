@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCellar } from "@/lib/cellarContext";
+import { useAuth } from "@/lib/authContext";
 
 const NAV = [
   { href: "/", label: "Tableau de bord", icon: "🏠" },
@@ -11,6 +12,20 @@ const NAV = [
   { href: "/historique", label: "Dégustations", icon: "📖" },
   { href: "/stats", label: "Statistiques", icon: "📊" },
 ];
+
+function LogoutButton() {
+  const { supabaseEnabled, authed, email, signOut } = useAuth();
+  if (!supabaseEnabled || !authed) return null;
+  return (
+    <button
+      onClick={() => signOut()}
+      className="btn btn-ghost px-2 py-1 text-xs"
+      title={email || undefined}
+    >
+      Déconnexion
+    </button>
+  );
+}
 
 function ModeBadge() {
   const { mode, ready } = useCellar();
@@ -42,7 +57,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               Ma Cave Virtuelle
             </span>
           </Link>
-          <ModeBadge />
+          <div className="flex items-center gap-2">
+            <ModeBadge />
+            <LogoutButton />
+          </div>
         </div>
         <nav className="mx-auto max-w-6xl overflow-x-auto px-2 pb-2">
           <ul className="flex gap-1 whitespace-nowrap">

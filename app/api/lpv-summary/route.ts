@@ -1,7 +1,8 @@
 import { getClient, MODEL, textOf, createWithTools, aiError, SOMMELIER } from "@/lib/server/ai";
+import { requireAuth } from "@/lib/server/auth";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const SYSTEM =
   SOMMELIER +
@@ -20,6 +21,8 @@ const SYSTEM =
 
 export async function POST(req: Request) {
   try {
+    const denied = await requireAuth(req);
+    if (denied) return denied;
     const b = await req.json();
     if (!b.name && !b.producer) {
       return aiError(new Error("Vin non identifié."), 400);
