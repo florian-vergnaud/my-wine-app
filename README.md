@@ -109,9 +109,6 @@ au modèle d'import, round-trip propre.)
 
 ## 4. Sécurité
 
-- **Régénère ta clé Claude** après les essais de mise au point (elle a transité
-  par un chat) : console.anthropic.com → API Keys → révoquer + recréer, puis
-  remplace-la dans `.env.local` et dans Vercel.
 - `.env.local`, `public/cellar.local.json`, `cellar-export.xlsx` sont
   **gitignorés** : ni clé ni données personnelles dans le dépôt.
 
